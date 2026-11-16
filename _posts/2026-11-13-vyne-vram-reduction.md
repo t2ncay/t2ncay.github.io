@@ -18,9 +18,7 @@ Here is what I found.
 
 ### 📉 1. The Memory Problem: The 94% Internal Drop
 
-Standard ML frameworks rely on dynamic memory allocation during the training loop, causing massive VRAM overhead and fragmentation.
-
-In an earlier version of Vyne, the compiler used dynamic `cudaMalloc` calls per iteration. By upgrading the compiler to use a scoped `@device` region, I preallocated the entire forward and backward graph exactly once. This eliminated dynamic allocation churn completely.
+In an earlier version of Vyne (V1), the compiler naively called `cudaMalloc` inside the training loop for every iteration, causing massive VRAM churn and fragmentation. By upgrading the compiler to use a scoped `@device` region (V2B), I preallocated the entire forward and backward graph exactly once.
 
 Here is what the explicit allocation looks like in Vyne. Everything from the weights to the AdamW optimizer moments is allocated exactly once at the top of the region:
 
@@ -48,17 +46,17 @@ Here is what the explicit allocation looks like in Vyne. Everything from the wei
 That is a **94% reduction** within my own compiler's architecture.
 
 **But how does this compare to PyTorch?**
-If you run this exact workload in PyTorch, the peak VRAM usage isn't 11 MB or 0.65 MB. It is typically **300 MB to 700 MB**.
+To be clear, PyTorch doesn't use raw `cudaMalloc` per iteration either; it uses a sophisticated caching allocator. However, PyTorch still pays a massive fixed "framework tax." If you run this exact workload in PyTorch, the peak VRAM usage is typically **300 MB to 700 MB**.
 
-Why? Because PyTorch is a massive C++ framework. Before it even loads your model weights, it initializes the CUDA context and dynamically loads vendor libraries like cuDNN and cuBLAS into VRAM. You are paying a massive "framework tax" just to run the math.
+Why? Before PyTorch even loads your model weights, it initializes the CUDA context and dynamically loads vendor libraries like cuDNN and cuBLAS into VRAM. For massive LLMs on datacenter GPUs, this fixed overhead is negligible. But for Edge AI deploying a 0.65 MB model, paying a 500 MB framework tax is impossible.
 
 Vyne avoids this tax entirely by bypassing the heavy runtime and using the low-level CUDA Driver API to JIT-compile only the exact PTX kernels needed.
 
 ### 🔬 2. The Determinism Problem: Bit-Exact Reproducibility
 
-If you run a PyTorch CUDA training script twice, the weights will be slightly different. This is because default PyTorch backward passes use `atomicAdd` operations, which introduce non-deterministic floating-point rounding order.
+If you run a PyTorch CUDA training script twice, the weights will be slightly different. This is because default PyTorch backward passes use `atomicAdd` operations, which introduce non-deterministic floating-point rounding order. (PyTorch does offer a deterministic mode via `torch.use_deterministic_algorithms(True)`, but it forces the framework to abandon its fastest vendor kernels, resulting in a severe performance penalty).
 
-To fix this, Vyne uses a **"gather" formulation** for the backward convolution kernels. Instead of many threads throwing their math into one shared bucket (scatter/atomicAdd), one thread owns one output element and loops sequentially over its inputs.
+To fix this without sacrificing speed, Vyne uses a **"gather" formulation** for the backward convolution kernels. Instead of many threads throwing their math into one shared bucket (scatter/atomicAdd), one thread owns one output element and loops sequentially over its inputs.
 
 When Vyne compiles the CUDA PTX, it injects it directly into the C binary. At runtime, Vyne loads the driver dynamically and JIT-compiles it:
 
@@ -84,6 +82,8 @@ I ran my exact same Vyne training script twice. The `train_loss.csv` and `val_me
     Terminal output showing the explicit CUDA training loop (left) and inference metrics (right). Note the 0.66 MB device peak during training, identical CPU/GPU PSNR (33.1963 dB), and a max numerical difference of just 2.38e-07.
 </div>
 
+*(Note on the 62ms GPU inference time: This includes the one-time JIT compilation of the PTX string at runtime. For a tiny 64x64 image with 1x1 kernels, the math is so small that JIT and PCIe launch overhead dominate. The goal of this benchmark was to prove memory safety and determinism, not raw throughput. For large models, this overhead is amortized to zero.)*
+
 ### 🏗️ Under the Hood
 
 *(To be fully transparent, I architected this system and used AI to accelerate the boilerplate generation. The real engineering challenge was designing the explicit memory model, debugging the PTX kernels, and verifying the numerical parity down to 2e-7).*
@@ -92,9 +92,9 @@ The Vyne compiler bridges the gap between high-level numerical computing and har
 
 ### 🔗 Read the Code
 
-I am currently planning to write a paper on compile-time memory safety for GPU training. If you are working on ML Systems, Compilers, or Edge AI, I’d love to connect.
+I am currently planning to write a paper on deterministic, region-based static allocation for GPU training. If you are working on ML Systems, Compilers, or Edge AI, I’d love to connect.
 
 You can view the explicit determinism guarantees and benchmarks in the repository here:
 [Vyne ESPCN Expected Metrics](https://github.com/t2ncay/vyne/blob/master/examples/projects/espcn/EXPECTED.md)
 
-# CompilerDesign #CUDA #MachineLearning #EdgeAI #HPC
+`#CompilerDesign` `#CUDA` `#MachineLearning` `#EdgeAI` `#HPC`
