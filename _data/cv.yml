@@ -57,17 +57,22 @@ cv:
       - name: Systems & Compilers
         level: Advanced
         icon: fa-solid fa-microchip
-        keywords: "C++, C, Compiler Design, LLVM/PTX, Memory Management, Region-based Allocation"
+        keywords: "C++, C, Compiler Design, LLVM, PTX, Memory Management, Region-based Allocation, Explicit Memory Models"
 
-      - name: GPU & Machine Learning
+      - name: GPU Architecture & CUDA
         level: Advanced
         icon: fa-solid fa-server
-        keywords: "CUDA, PTX, PyTorch, Edge AI, TinyML, Deterministic Training, Autodiff"
+        keywords: "CUDA Driver API, PTX JIT Compilation, Custom Kernel Design (Gather/Scatter), Warp-level Programming, VRAM Preallocation, Bypassing atomicAdd, Nsight (Basic)"
+
+      - name: Machine Learning Systems
+        level: Advanced
+        icon: fa-solid fa-brain
+        keywords: "Source-to-Source Autodiff, Deterministic Training, PyTorch (Weight Parity/Export), Neural Network Inference (CNN, ESPCN), Custom Optimizers (AdamW, SGD), Edge AI, TinyML"
 
       - name: Embedded & Hardware
         level: Intermediate
         icon: fa-solid fa-plug
-        keywords: "ESP32, AVR, SPI/I2C, Digital Signal Processing (DSP), Real-time Systems"
+        keywords: "ESP32, AVR (Arduino), SPI/I2C, Digital Signal Processing (DSP), Real-time Systems, RF Packet Monitoring"
 
     Languages:
       - name: Azerbaijani
