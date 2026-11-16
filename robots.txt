@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://t2ncay.github.io/sitemap.xml
