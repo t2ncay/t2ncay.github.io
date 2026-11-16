@@ -1,81 +1,68 @@
 ---
 layout: page
-title: project 1
-description: with background image
-img: assets/img/12.jpg
+title: Vyne Compiler & Edge AI
+description: A region-based systems language for deterministic GPU training and bare-metal deployment.
+img: assets/img/vyne_cover.jpg
 importance: 1
 category: work
-related_publications: true
 ---
 
-Every project has a beautiful feature showcase page.
-It's easy to include images in a flexible 3-column grid format.
-Make your photos 1/3, 2/3, or full width.
+Vyne is a statically-analyzed systems programming language and multi-target compiler designed to bridge the gap between high-level numerical computing and low-level hardware execution.
 
-To give your project a background in the portfolio page, just add the img tag to the front matter like so:
-
-    ---
-    layout: page
-    title: project
-    description: a project with a background image
-    img: /assets/img/12.jpg
-    ---
-
-<div class="row">
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/1.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/3.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/5.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
-    </div>
-</div>
-<div class="caption">
-    Caption photos easily. On the left, a road goes through a tunnel. Middle, leaves artistically fall in a hipster photoshoot. Right, in another hipster photoshoot, a lumberjack grasps a handful of pine needles.
-</div>
-<div class="row">
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/5.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
-    </div>
-</div>
-<div class="caption">
-    This image can also have a caption. It's like magic.
-</div>
-
-You can also put regular text between your rows of images, even citations {% cite einstein1950meaning %}.
-Say you wanted to write a bit about your project before you posted the rest of the images.
-You describe how you toiled, sweated, _bled_ for your project, and then... you reveal its glory in the next row of images.
+Instead of relying on a runtime garbage collector, Vyne uses **region-based memory management** to enforce deterministic execution and strict compile-time memory bounds. A single Vyne AST compiles down to x86 C, CUDA PTX for GPU acceleration, and bare-metal C/C++ for AVR and ESP32 microcontrollers.
 
 <div class="row justify-content-sm-center">
     <div class="col-sm-8 mt-3 mt-md-0">
-        {% include figure.liquid path="assets/img/6.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
+        {% include figure.liquid path="assets/img/vyne_terminal.png" title="CUDA Training Output" class="img-fluid rounded z-depth-1" %}
     </div>
     <div class="col-sm-4 mt-3 mt-md-0">
-        {% include figure.liquid path="assets/img/11.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
+        {% include figure.liquid path="assets/img/vyne_esp32.png" title="Wi-Fi Radar on ESP32" class="img-fluid rounded z-depth-1" %}
     </div>
 </div>
 <div class="caption">
-    You can also have artistically styled 2/3 + 1/3 images, like these.
+    Left: Vyne's deterministic CUDA training pipeline. Right: A 42-line Vyne script turning an ESP32 into a live Wi-Fi radar.
 </div>
 
-The code is simple.
-Just wrap your images with `<div class="col-sm">` and place them inside `<div class="row">` (read more about the <a href="https://getbootstrap.com/docs/4.4/layout/grid/">Bootstrap Grid</a> system).
-To make images responsive, add `img-fluid` class to each; for rounded corners and shadows use `rounded` and `z-depth-1` classes.
-Here's the code for the last row of images above:
+### The Core Innovations
 
-{% raw %}
+**Deterministic GPU Training**
+Standard frameworks like PyTorch rely on `atomicAdd` operations in their backward passes, which introduce floating-point non-determinism. Vyne bypasses this by generating custom CUDA PTX kernels using a "gather" formulation (one thread per output element). This guarantees **bit-exact reproducibility** across runs—a critical requirement for safety-critical AI.
 
-```html
-<div class="row justify-content-sm-center">
-  <div class="col-sm-8 mt-3 mt-md-0">
-    {% include figure.liquid path="assets/img/6.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
-  </div>
-  <div class="col-sm-4 mt-3 mt-md-0">
-    {% include figure.liquid path="assets/img/11.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
-  </div>
-</div>
+**Massive VRAM Reduction**
+By using explicit `@device` regions, Vyne preallocates the entire training graph. In our ESPCN super-resolution benchmarks, Vyne reduced peak VRAM usage from **11.2 MB to 0.65 MB (a 94% reduction)** compared to dynamic allocation methods.
+
+**Unified Hardware Deployment**
+The exact same language handles high-level neural network training and low-level hardware interrupts. The ESP32 and AVR backends include native bindings for Wi-Fi, SPI displays, I2C, GPIO, and real-time processing.
+
+### Code Example: Bare-Metal Hardware
+
+Because Vyne compiles directly to the target, hardware interaction is concise and memory-safe. Here is the core loop of the ESP32 Wi-Fi radar:
+
+```vyne
+use native esp32;
+
+esp32.display_init(1);
+networks :: Array = esp32.wifi_scan();
+count :: Int64 = networks.size();
+
+esp32.display_text(10, 10, "Found " + string(count) + " networks", 0x07E0, 2);
+
+# Render the list to the screen
+y :: Int64 = 40;
+through i :: 0..count-1 -> loop {
+    if y < esp32.display_height() - 20 {
+        esp32.display_text(10, y, networks[i], 0xFFFF, 1);
+        y = y + 15;
+    };
+};
 ```
 
-{% endraw %}
+### Under the Hood
+
+The Vyne compiler is written in C++ and features:
+
+- **Source-to-Source Autodiff:** Generates static C functions for the backward pass, eliminating the need for a runtime tape.
+- **Native ABI:** Unboxes primitives and typed arrays at call sites, achieving performance close to hand-written C.
+- **Dynamic Hardware Presets:** Uses `hardware.toml` to automatically inject compiler flags for specific SPI displays and microcontrollers without the user needing to touch C++ headers.
+
+*The project is open-source and available on [GitHub](https://github.com/t2ncay/vyne).*
