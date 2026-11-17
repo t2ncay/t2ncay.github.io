@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "The ESP32 Memory Wall: What Bounded Vyne Actually Saves—and What TFLM Wins"
-date: 2026-11-17 10:00:00+0400
+date: 2026-11-17 05:00:00+0400
 inline: false
 related_posts: true
 tags: compiler embedded esp32 tinyml systems
