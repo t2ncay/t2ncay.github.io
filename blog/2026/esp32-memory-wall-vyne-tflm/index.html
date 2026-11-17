@@ -1,0 +1,160 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> The ESP32 Memory Wall: What Bounded Vyne Actually Saves—and What TFLM Wins | Tunjay Gafarli </title> <meta name="author" content="Tunjay Gafarli"> <meta name="description" content="Computer Engineering Undergrad at Türkiye-Azerbaijan University. Building Vyne: a region-based compiler for deterministic Edge AI, CUDA, and bare-metal microcontrollers. "> <meta name="keywords" content="compilers, cuda, edge-ai, systems-programming, embedded-systems, tiny-ml"> <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; media-src 'self' https:; frame-src 'self' https:; connect-src 'self' https:;"> <style>
+  :root {
+    --max-content-width: 930px;
+  }
+</style> <link rel="stylesheet" href="/assets/css/tailwind.css?v=50c64c15cbb9fd1ce6056fdb8bcb4b62"> <link defer rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css" integrity="sha256-MVopmdyC2tYTiJ8wlktf0uh0v4NgT+vNdyVFepi7Q0c=" crossorigin="anonymous"> <link defer rel="stylesheet" href="https://cdn.jsdelivr.net/npm/academicons@1.9.5/css/academicons.min.css" integrity="sha256-SzrCOBJbGVFMahewkgjwnApaV2+av1DwMAA+/QGLyZw=" crossorigin="anonymous"> <link defer rel="stylesheet" href="https://cdn.jsdelivr.net/npm/scholar-icons@1.0.3/css/scholar-icons.css" integrity="sha256-VY3hHVj/hNX3fYG6wtbA6TcKJQl7+FthzGSyIB64klY=" crossorigin="anonymous"> <link defer rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons&amp;display=swap"> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-github.css?v=591dab5a4e56573bf4ef7fd332894c99" media="" id="highlight_theme_light"> <link rel="shortcut icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%F0%9F%92%BB&lt;/text&gt;&lt;/svg&gt;"> <link rel="stylesheet" href="/assets/css/main.css?v=3116ba77db9ee1581d05bb3e86fbf7f1"> <link rel="canonical" href="https://t2ncay.github.io/blog/2026/esp32-memory-wall-vyne-tflm/"> <script src="/assets/js/theme.js?v=5286c3e4c334d0ecb8fc0c40ff4fa7ec"></script> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-native.css?v=5847e5ed4a4568527aa6cfab446049ca" media="none" id="highlight_theme_dark"> <script>
+    initTheme();
+  </script> </head> <body class="fixed-top-nav "> <header> <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top" role="navigation"> <div class="container"> <a class="navbar-brand title font-weight-lighter" href="/"> Tunjay Gafarli </a> <button class="navbar-toggler collapsed navbar-toggler-main" type="button" data-nav-toggle="navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar top-bar"></span> <span class="icon-bar middle-bar"></span> <span class="icon-bar bottom-bar"></span> </button> <div class="collapse navbar-collapse navbar-collapse-main" id="navbarNav"> <ul class="navbar-nav navbar-menu-list flex-nowrap"> <li class="nav-item "> <a class="nav-link" href="/">about </a> </li> <li class="nav-item active"> <a class="nav-link" href="/blog/">blog </a> </li> <li class="nav-item "> <a class="nav-link" href="/projects/">projects </a> </li> <li class="nav-item "> <a class="nav-link" href="/repositories/">repositories </a> </li> <li class="nav-item "> <a class="nav-link" href="/cv/">CV </a> </li> <li class="nav-item "> <a class="nav-link" href="/teaching/">teaching </a> </li> <li class="nav-item"> <button id="search-toggle" type="button" title="Search" aria-label="Open search"> <span class="nav-link">ctrl k <i class="fa-solid fa-magnifying-glass"></i></span> </button> </li> <li class="toggle-container"> <button id="light-toggle" type="button" title="Change theme" aria-label="Change color theme"> <i class="fa-half-sun-moon" id="light-toggle-system"></i> <i class="fa-solid fa-moon" id="light-toggle-dark"></i> <i class="fa-solid fa-sun" id="light-toggle-light"></i> </button> </li> </ul> </div> </div> </nav> <progress id="progress" value="0"> <div class="progress-container"> <span class="progress-bar"></span> </div> </progress> </header> <div class="container mt-5" role="main"> <div class="post"> <header class="post-header"> <h1 class="post-title">The ESP32 Memory Wall: What Bounded Vyne Actually Saves—and What TFLM Wins</h1> <p class="post-meta"> Created on November 17, 2026 </p> <p class="post-tags"> <a href="/blog/2026"> <i class="fa-solid fa-calendar fa-sm"></i> 2026 </a>   ·   <a href="/blog/tag/compiler"> <i class="fa-solid fa-hashtag fa-sm"></i> compiler</a>   <a href="/blog/tag/embedded"> <i class="fa-solid fa-hashtag fa-sm"></i> embedded</a>   <a href="/blog/tag/esp32"> <i class="fa-solid fa-hashtag fa-sm"></i> esp32</a>   <a href="/blog/tag/tinyml"> <i class="fa-solid fa-hashtag fa-sm"></i> tinyml</a>   <a href="/blog/tag/systems"> <i class="fa-solid fa-hashtag fa-sm"></i> systems</a>   ·   <a href="/blog/category/systems"> <i class="fa-solid fa-tag fa-sm"></i> systems</a> </p> </header> <article class="post-content"> <div id="markdown-content"> <p>When deploying neural networks onto microcontrollers like the classic ESP32, the bottleneck rarely starts with raw FLOPs—it starts with static SRAM. You are working inside a few hundred kilobytes shared across your network buffers, runtime metadata, task stacks, and system heap.</p> <p>To test how my compiler, <strong>Vyne</strong>, holds up against the industry standard, I ran a falsifiable, apples-to-apples hardware benchmark on a classic ESP32 (240 MHz, PSRAM disabled, Wi-Fi/BT off) against <strong>TensorFlow Lite for Microcontrollers (TFLM)</strong>.</p> <p>Instead of cherry-picking a workload where Vyne wins everything, I wanted to measure the exact trade-offs: where static region-based scratch saves real memory, what happens when a compiler accidentally falls back to boxed soft-float arithmetic, and where TFLM still wins on raw execution speed.</p> <hr> <h3 id="-1-the-wall-and-a-falsifiable-experiment">🧱 1. The Wall and a Falsifiable Experiment</h3> <p>To avoid classification accuracy or dataset quirks muddying the systems metrics, both runtimes execute the exact same <strong>Float32 <code class="language-plaintext highlighter-rouge">64 → 32 → 10</code> MLP</strong> (ReLU hidden activation, linear output logits, 2,410 parameters / 9,640 bytes of flash-resident weights).</p> <ul> <li> <strong>Identical Weights &amp; Validation:</strong> Trained deterministically for 5 epochs on seed <code class="language-plaintext highlighter-rouge">20261117</code>, exported to <code class="language-plaintext highlighter-rouge">.vwt</code> for Vyne and converted via an equivalent Keras graph into a TFLite FlatBuffer. Both runtimes must pass numerical verification across all 8 test vectors (<code class="language-plaintext highlighter-rouge">atol=2e-5, rtol=2e-4</code>) before a single timing sample is accepted.</li> <li> <strong>Strict Timing Protocol:</strong> After 10 warmup passes, each cold-reset run executes 20 batches of 100 inferences timed via the 64-bit <code class="language-plaintext highlighter-rouge">esp_timer_get_time()</code> hardware counter—including input copy, math, and 10 volatile logit stores to prevent dead-code elimination.</li> <li> <strong>Fail-Closed Harness:</strong> If <code class="language-plaintext highlighter-rouge">AllocateTensors()</code> fails, outputs drift, or a capture drops batches, the runner rejects the run and logs the failure rather than publishing partial numbers.</li> </ul> <hr> <h3 id="️-2-two-fixed-buffers-different-orchestration">⚙️ 2. Two Fixed Buffers, Different Orchestration</h3> <p>Neither runtime uses <code class="language-plaintext highlighter-rouge">malloc</code> inside the inference loop—both avoid conventional per-inference heap fragmentation—but they manage static memory differently:</p> <ul> <li> <strong>TFLM (Manual Arena + Runtime Planner):</strong> You supply a statically allocated byte array (<code class="language-plaintext highlighter-rouge">tensor_arena</code>), and <code class="language-plaintext highlighter-rouge">AllocateTensors()</code> plans activation reuse and stores persistent interpreter metadata inside it. For this MLP, TFLM’s planner requires <strong>904 bytes</strong> of arena space. Give it <code class="language-plaintext highlighter-rouge">1,024</code> bytes (<code class="language-plaintext highlighter-rouge">sized</code> profile) and it runs cleanly; give it <code class="language-plaintext highlighter-rouge">896</code> bytes and <code class="language-plaintext highlighter-rouge">AllocateTensors()</code> fails deterministically on the device.</li> <li> <strong>Vyne (<code class="language-plaintext highlighter-rouge">@bounded</code> Lexical Scratch):</strong> Instead of an interpreter planner, Vyne allocates activation buffers (<code class="language-plaintext highlighter-rouge">64 + 32 + 10</code> floats = <strong>424 bytes</strong>) directly on the stack inside a lexically scoped <code class="language-plaintext highlighter-rouge">@bounded</code> region. The compiler enforces a conservative static budget (<code class="language-plaintext highlighter-rouge">@bounded&lt;848&gt;</code>, currently accounting at 8 bytes/element) and rejects over-budget scratch at compile time (<code class="language-plaintext highlighter-rouge">VNE-101</code>).</li> </ul> <p><strong>The Explicit Integration Cost:</strong> To keep this honest, Vyne is not yet a standalone <code class="language-plaintext highlighter-rouge">.vwt</code> microcontroller framework. Because Vyne lacks embedded VFS loading and native C FFI bindings today, the benchmark runner emits ESP32-targeted C code and swaps in checked flash-weight accessors and telemetry stubs (verifying via SHA-256 that the generated <code class="language-plaintext highlighter-rouge">vyne_setup()</code> inference body remains byte-for-byte untouched).</p> <hr> <h3 id="-3-the-numbers-including-the-inconvenient-results">📊 3. The Numbers (Including the Inconvenient Results)</h3> <p>Before fixing a critical codegen bottleneck in Vyne, my first hardware runs hit a wall—not in memory, but in latency.</p> <p>In the initial baseline (<code class="language-plaintext highlighter-rouge">caa738e</code>), Vyne’s multiply-accumulate expression:</p> <pre><code class="language-vyne">acc = float32(acc + float32(input[k] * bench_weight1(j * 64 + k)));
+</code></pre> <p>lost its native <code class="language-plaintext highlighter-rouge">Float32</code> type information across <code class="language-plaintext highlighter-rouge">float32(...)</code> conversion boundaries, falling back to generic boxed dispatchers and <code class="language-plaintext highlighter-rouge">Float32 ↔ Float64</code> software emulation helpers (<code class="language-plaintext highlighter-rouge">__extendsfdf2</code> / <code class="language-plaintext highlighter-rouge">__truncdfsf2</code>). That dragged Vyne down to <strong>3.10 ms/inference</strong> and kept its unused 64 KiB runtime arena linked into <code class="language-plaintext highlighter-rouge">.bss</code>.</p> <p>After updating <code class="language-plaintext highlighter-rouge">BuiltInCallNode</code> and <code class="language-plaintext highlighter-rouge">codegen/builtins.cpp</code> to materialize native <code class="language-plaintext highlighter-rouge">Float32</code> temporaries directly into the compiler’s fast path, the Xtensa disassembly (<code class="language-plaintext highlighter-rouge">vyne-setup.asm</code>) confirmed pure hardware <code class="language-plaintext highlighter-rouge">mul.s</code> and <code class="language-plaintext highlighter-rouge">add.s</code> instructions—and the dead arena dropped out of the linked ELF image completely (<strong>0 linked arena bytes</strong>).</p> <p>Here are the cold-reset hardware results across 20,000 timed inferences (10 accepted runs, order-reversed between passes):</p> <table> <thead> <tr> <th>Profile</th> <th>Runtime</th> <th>Configured / Linked Arena</th> <th>Arena Used / Scratch</th> <th>Static DRAM (<code class="language-plaintext highlighter-rouge">.data</code>/<code class="language-plaintext highlighter-rouge">.bss</code>)</th> <th>Flash Image</th> <th>Median Latency (min–max)</th> </tr> </thead> <tbody> <tr> <td><strong>Default</strong></td> <td>TFLM</td> <td>16,384 B / 16,384 B</td> <td>904 B / 0 B</td> <td>39,060 B</td> <td>322,272 B</td> <td> <strong>0.077040 ms</strong> (0.07699–0.07706)</td> </tr> <tr> <td><strong>Default</strong></td> <td>Vyne</td> <td>65,536 B / <strong>0 B</strong> </td> <td>0 B / <strong>424 B</strong> </td> <td><strong>22,324 B</strong></td> <td><strong>283,424 B</strong></td> <td>0.132350 ms (0.13234–0.13239)</td> </tr> <tr> <td><strong>Sized</strong></td> <td>TFLM</td> <td>1,024 B / 1,024 B</td> <td>904 B / 0 B</td> <td>23,700 B</td> <td>322,272 B</td> <td> <strong>0.077040 ms</strong> (0.07699–0.07709)</td> </tr> <tr> <td><strong>Sized</strong></td> <td>Vyne</td> <td>1,024 B / <strong>0 B</strong> </td> <td>0 B / <strong>424 B</strong> </td> <td><strong>22,324 B</strong></td> <td><strong>283,424 B</strong></td> <td>0.132350 ms (0.13234–0.13239)</td> </tr> </tbody> </table> <p><em>(Note: Total device peak SRAM is not a single counter on ESP-IDF; static <code class="language-plaintext highlighter-rouge">.data</code>/<code class="language-plaintext highlighter-rouge">.bss</code>, task-stack high-water marks—7,036 B free of 8,192 B on Vyne vs. 6,688–6,720 B on TFLM—and internal heap telemetry are tracked separately without double-counting.)</em></p> <p><strong>What the data actually says:</strong></p> <ol> <li> <strong>23.4× Internal Speedup:</strong> Eliminating boxed/double conversions cut Vyne’s latency from <code class="language-plaintext highlighter-rouge">3.101680 ms</code> down to <strong><code class="language-plaintext highlighter-rouge">0.132350 ms</code></strong> (a <strong>95.7% latency reduction</strong>).</li> <li> <strong>TFLM Still Wins on Latency (1.72× Faster):</strong> Even with native hardware <code class="language-plaintext highlighter-rouge">mul.s</code>/<code class="language-plaintext highlighter-rouge">add.s</code> instructions, TFLM finishes in <strong><code class="language-plaintext highlighter-rouge">0.077040 ms</code></strong>—about <strong>55 microseconds faster</strong> per inference. TFLM’s fused <code class="language-plaintext highlighter-rouge">FullyConnected</code> kernels and vendor-tuned inner loops still beat Vyne’s straightforward emitted C loops and flash-accessor calls.</li> <li> <strong>Vyne Wins on Linked Footprint:</strong> Without interpreter metadata or a persistent tensor arena, Vyne saves <strong>1,376 B of static DRAM (~5.8%)</strong> even against a tightly sized 1 KiB TFLM build (and <strong>16,736 B / ~42.9%</strong> against default arena reservations), while shrinking the Flash binary by <strong>38,848 B (~12.1%)</strong>.</li> <li> <strong>Honest Engineering Effort:</strong> Counting only the core inference loop (<code class="language-plaintext highlighter-rouge">52</code> LOC in Vyne vs. <code class="language-plaintext highlighter-rouge">62</code> LOC in TFLM) would be misleading—once you include the data bridge stubs (<code class="language-plaintext highlighter-rouge">11</code> LOC), MCU Float32 compatibility header (<code class="language-plaintext highlighter-rouge">9</code> LOC), and staging machinery (<code class="language-plaintext highlighter-rouge">401</code> LOC), Vyne currently requires more surrounding plumbing than dropping in TFLM.</li> </ol> <hr> <h3 id="-4-what-i-would-shipand-what-i-need-to-fix-next">🚀 4. What I Would Ship—and What I Need to Fix Next</h3> <p>If I were shipping a Float32 or Int8 microcontroller product <strong>today</strong>, I would still ship <strong>TFLM</strong>. It has mature operator coverage, battle-tested CMSIS-NN/ESP-NN SIMD kernels, and a 1.72× latency lead on this workload—and once you properly size its arena using <code class="language-plaintext highlighter-rouge">arena_used_bytes()</code>, its static RAM overhead is modest.</p> <p>Where <strong>Vyne’s</strong> model proves compelling is ultra-tight Flash/DRAM budgets where carrying a ~322 KB interpreter runtime isn’t viable, and where compile-time region budgets (<code class="language-plaintext highlighter-rouge">@bounded</code>) prevent silent memory creep before flashing the board.</p> <p>To close the remaining <strong>55 µs gap</strong> and turn this prototype into a standalone embedded ML target, three things are next on my compiler roadmap:</p> <ul> <li> <strong>Loop Unrolling &amp; Direct Flash Pointer Lowering:</strong> Eliminating per-element accessor overhead and unrolling inner dot-product accumulators to hide Xtensa FPU pipeline latency.</li> <li> <strong>Tighter Static Scratch Accounting:</strong> Refining <code class="language-plaintext highlighter-rouge">@bounded</code> static analysis from conservative 8-byte slots down to exact <code class="language-plaintext highlighter-rouge">Float32</code> width (<code class="language-plaintext highlighter-rouge">424 B</code> instead of <code class="language-plaintext highlighter-rouge">848 B</code>).</li> <li> <strong>Int8 Quantization &amp; Hardware Energy Profiling:</strong> Measuring quantized kernels against ESP-NN alongside real power/current draw and long-running multi-region allocation stress tests.</li> </ul> <h3 id="-reproduce-the-benchmark">🔗 Reproduce the Benchmark</h3> <p>All capture logs, ELF section tables, disassembly audits (<code class="language-plaintext highlighter-rouge">vyne-setup.asm</code>), and automated failure tests are reproducible directly from the repository: <a href="https://github.com/t2ncay/vyne" rel="external nofollow noopener" target="_blank">Vyne ESP32 Memory Benchmark (<code class="language-plaintext highlighter-rouge">esp32_memory_bench</code>)</a></p> <p><code class="language-plaintext highlighter-rouge">#CompilerDesign</code> <code class="language-plaintext highlighter-rouge">#ESP32</code> <code class="language-plaintext highlighter-rouge">#TinyML</code> <code class="language-plaintext highlighter-rouge">#EmbeddedSystems</code> <code class="language-plaintext highlighter-rouge">#EdgeAI</code></p> </div> </article> <br> <hr> <br> <h2 class="text-3xl font-semibold mb-4 mt-12">Enjoy Reading This Article?</h2> <p class="mb-2">Here are some more articles you might like to read next:</p> <ul class="list-disc pl-7 my-3 space-y-2 marker:text-[var(--global-theme-color)]"> <li class="leading-relaxed"> <a class="underline decoration-1 hover:text-[var(--global-hover-color)]" href="/blog/2026/vyne-vram-reduction/">Reducing Neural Network VRAM by 94%: Fixing PyTorch's Memory and Determinism Problems</a> </li> </ul> </div> </div> <footer class="fixed-bottom" role="contentinfo"> <div class="container mt-0"> © Copyright 2026 Tunjay Gafarli. Powered by <a href="https://jekyllrb.com/" target="_blank" rel="external nofollow noopener">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio" rel="external nofollow noopener" target="_blank">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank" rel="external nofollow noopener">GitHub Pages</a>. Photos from <a href="https://unsplash.com" target="_blank" rel="external nofollow noopener">Unsplash</a>. </div> </footer> <script>
+  window.alFolio = {
+    compatBootstrap: false
+  };
+</script> <script src="/assets/js/nav-toggle.js?v=141bd79a73ebc0f0b6ea58e440ae79fc"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin="anonymous"></script> <script defer src="/assets/js/masonry.js?v=e49affc7bd2646f6acdad1dbe02c2359" type="text/javascript"></script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script> <script src="/assets/al_math/js/mathjax-setup.js"></script> <script src="/assets/js/tooltips-setup.js?v=fe487e99db6c43751e6e7bdb2d6a0611"></script> <script src="/assets/js/no_defer.js?v=53b1b1a645525975c963ce8bf8bfefcf"></script> <script defer src="/assets/js/common.js?v=87baac90f765f2f3362dcf6aaf312a8a"></script> <script defer src="/assets/js/copy_code.js?v=c8a01c11a92744d44b093fc3bda915df" type="text/javascript"></script> <script defer src="/assets/js/jupyter_new_tab.js?v=896d254890d9b47f0281f63bfccf0dee"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script> <script defer src="/assets/al_img_tools/js/zoom.js"></script> <script defer src="/assets/js/progress-bar.js?v=499464c5c63ced6cf7ad62509f1e2610" type="text/javascript"></script> <script src="https://cdn.jsdelivr.net/npm/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js" integrity="sha256-uMJJ3EoTyfRBoTbR+lrfu1uRQ87RZG8AR3cVNuQVeFg=" crossorigin="anonymous"></script> <script>
+    addBackToTop();
+  </script> <script type="module" src="/assets/al_search/js/search/ninja-keys.min.js"></script> <ninja-keys hidebreadcrumbs noautoloadmdicons placeholder="Type to start searching"></ninja-keys> <script src="/assets/al_search/js/search-setup.js"></script> <script>
+// get the ninja-keys element
+const ninja = document.querySelector('ninja-keys');
+
+// add the home and posts menu items
+ninja.data = [{
+    id: "nav-about",
+    title: "about",
+    section: "Navigation",
+    handler: () => {
+      window.location.href = "/";
+    },
+  },{id: "nav-blog",
+          title: "blog",
+          description: "",
+          section: "Navigation",
+          handler: () => {
+            window.location.href = "/blog/";
+          },
+        },{id: "nav-projects",
+          title: "projects",
+          description: "A growing collection of your cool projects.",
+          section: "Navigation",
+          handler: () => {
+            window.location.href = "/projects/";
+          },
+        },{id: "nav-repositories",
+          title: "repositories",
+          description: "Edit the `_data/repositories.yml` and change the `github_users` and `github_repos` lists to include your own GitHub profile and repositories.",
+          section: "Navigation",
+          handler: () => {
+            window.location.href = "/repositories/";
+          },
+        },{id: "nav-cv",
+          title: "CV",
+          description: "This is a description of the page. You can modify it in &#39;_pages/cv.md&#39;. You can also change or remove the top pdf download button.",
+          section: "Navigation",
+          handler: () => {
+            window.location.href = "/cv/";
+          },
+        },{id: "nav-teaching",
+          title: "teaching",
+          description: "Teaching Assistantship and course materials.",
+          section: "Navigation",
+          handler: () => {
+            window.location.href = "/teaching/";
+          },
+        },{id: "post-the-esp32-memory-wall-what-bounded-vyne-actually-saves-and-what-tflm-wins",
+        
+          title: "The ESP32 Memory Wall: What Bounded Vyne Actually Saves—and What TFLM Wins",
+        
+        description: "",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2026/esp32-memory-wall-vyne-tflm/";
+          
+        },
+      },{id: "post-reducing-neural-network-vram-by-94-fixing-pytorch-39-s-memory-and-determinism-problems",
+        
+          title: "Reducing Neural Network VRAM by 94%: Fixing PyTorch&#39;s Memory and Determinism Problems",
+        
+        description: "",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2026/vyne-vram-reduction/";
+          
+        },
+      },{id: "books-the-godfather",
+          title: 'The Godfather',
+          description: "",
+          section: "Books",handler: () => {
+              window.location.href = "/books/the_godfather/";
+            },},{id: "news-published-a-technical-deep-dive-on-how-the-vyne-compiler-reduced-neural-network-vram-usage-by-94-and-achieved-bit-exact-deterministic-gpu-training-read-the-full-article-here-blog-2026-vyne-vram-reduction",
+          title: 'Published a technical deep dive on how the **Vyne compiler** reduced neural network...',
+          description: "",
+          section: "News",},{id: "news-published-a-hardware-benchmark-comparing-vyne-against-tensorflow-lite-for-microcontrollers-tflm-on-a-classic-esp32-achieving-a-23-4-latency-speedup-via-native-float32-lowering-eliminating-linked-arena-overhead-and-breaking-down-where-tflm-still-wins-read-the-full-article-here-blog-2026-esp32-memory-wall-vyne-tflm",
+          title: 'Published a hardware benchmark comparing **Vyne** against **TensorFlow Lite for Microcontrollers (TFLM)** on...',
+          description: "",
+          section: "News",},{id: "projects-vyne-compiler-amp-edge-ai",
+          title: 'Vyne Compiler &amp;amp; Edge AI',
+          description: "A region-based systems language for deterministic GPU training and bare-metal deployment.",
+          section: "Projects",handler: () => {
+              window.location.href = "/projects/1_project/";
+            },},{id: "teachings-computer-laboratory",
+          title: 'Computer Laboratory',
+          description: "Undergraduate Teaching Assistantship",
+          section: "Teachings",handler: () => {
+              window.location.href = "/teachings/computer_laboratory/";
+            },},{
+        id: 'social-email',
+        title: 'email',
+        section: 'Socials',
+        handler: () => {
+          window.open("mailto:%34%74%76%6E%65%78%6D%67%6D%74@%67%6D%61%69%6C.%63%6F%6D", "_blank");
+        },
+      },{
+        id: 'social-github',
+        title: 'GitHub',
+        section: 'Socials',
+        handler: () => {
+          window.open("https://github.com/t2ncay", "_blank");
+        },
+      },{
+        id: 'social-linkedin',
+        title: 'LinkedIn',
+        section: 'Socials',
+        handler: () => {
+          window.open("https://www.linkedin.com/in/tuncay-gafarli-345916226", "_blank");
+        },
+      },{
+        id: 'social-rss',
+        title: 'RSS Feed',
+        section: 'Socials',
+        handler: () => {
+          window.open("/feed.xml", "_blank");
+        },
+      },{
+      id: 'light-theme',
+      title: 'Change theme to light',
+      description: 'Change the theme of the site to Light',
+      section: 'Theme',
+      handler: () => {
+        setThemeSetting("light");
+      },
+    },
+    {
+      id: 'dark-theme',
+      title: 'Change theme to dark',
+      description: 'Change the theme of the site to Dark',
+      section: 'Theme',
+      handler: () => {
+        setThemeSetting("dark");
+      },
+    },
+    {
+      id: 'system-theme',
+      title: 'Use system default theme',
+      description: 'Change the theme of the site to System Default',
+      section: 'Theme',
+      handler: () => {
+        setThemeSetting("system");
+      },
+    },];
+
+</script> <script src="/assets/al_search/js/shortcut-key.js"></script> </body> </html>
